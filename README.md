@@ -1,53 +1,442 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# PLN Backend API - Setup & Installation Guide
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+API backend untuk aplikasi PLN Mobile menggunakan **Laravel 13** dengan authentication menggunakan Laravel Sanctum.
 
-## About Laravel
+## 📋 Daftar Isi
+- [Prasyarat](#prasyarat)
+- [Instalasi Cepat](#instalasi-cepat)
+- [Konfigurasi Detail](#konfigurasi-detail)
+- [Database Setup](#database-setup)
+- [Running Development Server](#running-development-server)
+- [API Endpoints](#api-endpoints)
+- [Authentication](#authentication)
+- [Troubleshooting](#troubleshooting)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## ✅ Prasyarat
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **PHP 8.3+**
+  ```bash
+  php --version
+  ```
+- **Composer** (PHP Package Manager)
+  ```bash
+  composer --version
+  ```
+- **Node.js & npm** (untuk asset pipeline)
+  ```bash
+  node --version && npm --version
+  ```
+- **Database**: MySQL 5.7+ atau PostgreSQL 9.5+
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 🚀 Instalasi Cepat
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
+### 1. Clone/Navigate ke Backend Folder
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+cd pln-backend
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Install Dependencies
+```bash
+composer install
+```
 
-## Contributing
+### 3. Setup Environment & Keys
+```bash
+# Copy environment template
+cp .env.example .env
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# Generate encryption key
+php artisan key:generate
+```
 
-## Code of Conduct
+### 4. Database Configuration
+Edit file `.env`:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=pln_app
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Buat database terlebih dahulu:
+```bash
+mysql -u root -p
+CREATE DATABASE pln_app;
+EXIT;
+```
+
+### 5. Run Migrations
+```bash
+php artisan migrate
+```
+
+### 6. Optional: Seed Database
+```bash
+php artisan db:seed
+```
+
+### 7. Install Frontend Assets
+```bash
+npm install
+npm run build
+```
+
+### 8. Start Development Server
+```bash
+php artisan serve
+```
+
+Server berjalan di: **http://127.0.0.1:8000**
+
+---
+
+## ⚙️ Konfigurasi Detail
+
+### File `.env` - Konfigurasi Utama
+
+```env
+# Application
+APP_NAME=PLN_App
+APP_ENV=local
+APP_KEY=<auto-generated>
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+# Database
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=pln_app
+DB_USERNAME=root
+DB_PASSWORD=
+
+# Mail (Opsional)
+MAIL_MAILER=log
+MAIL_FROM_ADDRESS=noreply@pln.local
+MAIL_FROM_NAME="PLN App"
+
+# Cache & Session
+CACHE_DRIVER=file
+SESSION_DRIVER=file
+QUEUE_CONNECTION=sync
+```
+
+### CORS Configuration (jika diperlukan)
+Edit `config/cors.php` untuk allow requests dari Flutter app:
+```php
+'allowed_origins' => ['*'],
+'allowed_methods' => ['*'],
+'allowed_headers' => ['*'],
+```
+
+### Authentication dengan Sanctum
+Laravel Sanctum sudah dikonfigurasi untuk API token authentication:
+```php
+// config/sanctum.php
+'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', 'localhost,127.0.0.1')),
+```
+
+---
+
+## 🗄️ Database Setup
+
+### Struktur Migrations
+File migration tersimpan di `database/migrations/`:
+
+Jalankan semua migrations:
+```bash
+php artisan migrate
+```
+
+Rollback last migration:
+```bash
+php artisan migrate:rollback
+```
+
+Reset database:
+```bash
+php artisan migrate:reset
+```
+
+Refresh database (reset + migrate):
+```bash
+php artisan migrate:refresh
+```
+
+---
+
+## ▶️ Running Development Server
+
+### Start Laravel Development Server
+```bash
+php artisan serve
+```
+
+Server akan berjalan di: **http://127.0.0.1:8000**
+
+Untuk mengakses dari device lain di network:
+```bash
+php artisan serve --host=0.0.0.0 --port=8000
+```
+
+Akses API dari: **http://YOUR_IP_ADDRESS:8000/api**
+
+### Asset Pipeline Development
+Untuk watch mode (auto-rebuild assets):
+```bash
+npm run dev
+```
+
+Untuk production build:
+```bash
+npm run build
+```
+
+---
+
+## 📡 API Endpoints
+
+### Base URL
+```
+http://localhost:8000/api
+```
+
+### Authentication Endpoints (Development)
+```
+POST   /login           - Login pengguna
+POST   /register        - Registrasi pengguna baru
+POST   /logout          - Logout pengguna
+GET    /user            - Get profile pengguna
+```
+
+### Data Sync Endpoints
+```
+POST   /sync-pelanggan   - Sinkronisasi data pelanggan
+GET    /pelanggan        - List semua pelanggan
+GET    /pelanggan/{id}   - Detail pelanggan
+```
+
+### File Upload Endpoints
+```
+POST   /upload-foto      - Upload foto profil/dokumen
+GET    /foto/{id}        - Download foto
+DELETE /foto/{id}        - Hapus foto
+```
+
+---
+
+## 🔐 Authentication
+
+### API Token Authentication
+
+Laravel Sanctum menyediakan token-based authentication untuk API:
+
+#### 1. Generate Token (Contoh di Tinker)
+```bash
+php artisan tinker
+```
+
+```php
+$user = App\Models\User::find(1);
+$token = $user->createToken('app-token')->plainTextToken;
+echo $token;
+```
+
+#### 2. Gunakan Token di Header Request
+```http
+Authorization: Bearer {token}
+Accept: application/json
+Content-Type: application/json
+```
+
+#### 3. Jangan Lupa di `.env`
+```env
+SANCTUM_STATEFUL_DOMAINS=10.0.2.2:8000,localhost:8000
+API_DOMAIN=http://localhost:8000
+```
+
+---
+
+## 📁 Project Structure
+
+```
+app/
+├── Http/
+│   ├── Controllers/     # API Controllers
+│   └── Requests/        # Form Request Validation
+├── Models/              # Eloquent Models
+└── Providers/           # Service Providers
+
+database/
+├── migrations/          # Schema Migrations
+├── factories/           # Model Factories
+└── seeders/             # Database Seeders
+
+routes/
+├── api.php              # API Routes
+├── web.php              # Web Routes
+└── console.php          # Console Commands
+
+config/
+├── app.php              # Application Config
+├── database.php         # Database Config
+├── auth.php             # Authentication Config
+└── sanctum.php          # API Authentication Config
+
+storage/
+├── app/                 # File uploads
+└── logs/                # Application logs
+```
+
+---
+
+## 🛠️ Artisan Commands Penting
+
+```bash
+# Lihat semua routes
+php artisan route:list
+
+# Run migrations
+php artisan migrate
+
+# Create migration
+php artisan make:migration create_table_name
+
+# Create model with migration
+php artisan make:model ModelName -m
+
+# Create controller
+php artisan make:controller ControllerName
+
+# Run tests
+php artisan test
+
+# Clear cache
+php artisan cache:clear
+php artisan config:cache
+
+# Interactive tinker shell
+php artisan tinker
+
+# Schedule test (jika ada background jobs)
+php artisan schedule:work
+```
+
+---
+
+## 📝 Environment-Specific Configuration
+
+### Development
+```env
+APP_DEBUG=true
+APP_ENV=local
+```
+
+### Production
+```env
+APP_DEBUG=false
+APP_ENV=production
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### "Connection refused" - Database Error
+```bash
+# Pastikan MySQL running
+mysql -u root -p
+SHOW DATABASES;
+EXIT;
+```
+
+### "SQLSTATE[HY000]: General error: 1030"
+- Database storage penuh
+- Recreate database: `php artisan migrate:reset && php artisan migrate`
+
+### Class "PDO" not found
+```bash
+# Install PHP extensions yang diperlukan
+# Ubuntu/Debian
+sudo apt-get install php8.3-mysql php8.3-mbstring php8.3-xml
+
+# macOS dengan Homebrew
+brew tap shivammathur/php
+brew install php@8.3
+```
+
+### Composer memory error
+```bash
+composer install --memory-limit=2048M
+```
+
+### Port 8000 sudah digunakan
+```bash
+php artisan serve --port=8001
+```
+
+### Storage permissions error
+```bash
+chmod -R 775 storage/ bootstrap/cache/
+```
+
+### Clear all caches
+```bash
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+```
+
+---
+
+## 📚 Useful Resources
+
+- [Laravel Official Documentation](https://laravel.com/docs)
+- [Laravel API Documentation](https://laravel.com/api)
+- [Laravel Sanctum Authentication](https://laravel.com/docs/sanctum)
+- [Eloquent ORM Guide](https://laravel.com/docs/eloquent)
+
+---
+
+## 🔄 Development Workflow
+
+1. **Buat branch baru**:
+   ```bash
+   git checkout -b feature/nama-fitur
+   ```
+
+2. **Buat migration/model**:
+   ```bash
+   php artisan make:model NamaModel -m
+   ```
+
+3. **Develop & test**:
+   ```bash
+   php artisan test
+   ```
+
+4. **Commit & push**:
+   ```bash
+   git add .
+   git commit -m "feat: deskripsi fitur"
+   git push origin feature/nama-fitur
+   ```
+
+---
+
+## 📞 Support
+
+Untuk bantuan lebih lanjut atau pertanyaan teknis, referensi ke dokumentasi official atau periksa file `/.laravel` untuk konfigurasi IDE.
 
 ## Security Vulnerabilities
 

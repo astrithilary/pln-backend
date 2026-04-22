@@ -8,6 +8,15 @@ use Illuminate\Support\Facades\DB;
 
 class PelangganController extends Controller
 {
+    public function index()
+    {
+        $pelanggans = DB::table('pelanggans')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($pelanggans);
+    }
+
     public function store(Request $request)
     {
         // 1. Validasi data yang masuk dari Flutter
@@ -67,5 +76,29 @@ class PelangganController extends Controller
             'status' => 'error',
             'message' => 'File foto tidak ditemukan'
         ], 400);
+    }
+
+    public function destroy($id)
+    {
+        $pelanggan = DB::table('pelanggans')->where('id', $id)->first();
+
+        if (!$pelanggan) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data tidak ditemukan'
+            ], 404);
+        }
+
+        // Hapus foto if exists
+        if ($pelanggan->foto_path) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($pelanggan->foto_path);
+        }
+
+        DB::table('pelanggans')->where('id', $id)->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data berhasil dihapus'
+        ]);
     }
 }
