@@ -23,20 +23,32 @@ class PelangganController extends Controller
         $validated = $request->validate([
             'nama' => 'required',
             'alamat' => 'required',
-            'no_meter' => 'required',
+            'no_meter' => 'nullable|string',
+            'id_pelanggan' => 'nullable|string',
             'daya_listrik' => 'nullable|integer',
+            'daya' => 'nullable|integer',
             'no_hp' => 'nullable|string',
             'foto_path' => 'nullable|string',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'waktu_kunjungan' => 'nullable|date',
         ]);
+
+        // Normalize data
+        $no_meter = $request->no_meter ?? $request->id_pelanggan ?? '';
+        $daya_listrik = $request->daya_listrik ?? $request->daya;
 
         // 2. Simpan ke database SQLite Laptop
         DB::table('pelanggans')->insert([
             'nama' => $request->nama,
             'alamat' => $request->alamat,
-            'no_meter' => $request->no_meter,
-            'daya_listrik' => $request->daya_listrik,
+            'no_meter' => $no_meter,
+            'daya_listrik' => $daya_listrik,
             'no_hp' => $request->no_hp,
             'foto_path' => $request->foto_path,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'waktu_kunjungan' => $request->waktu_kunjungan ? \Carbon\Carbon::parse($request->waktu_kunjungan) : null,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
