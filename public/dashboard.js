@@ -30,31 +30,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         dataGrid.innerHTML = data.map(item => {
-            const fotoUrl = item.foto_path ? `/storage/${item.foto_path}` : null;
+            const fotoUrl = getPhotoUrl(item.foto_path);
             const date = new Date(item.created_at).toLocaleString('id-ID');
             
             return `
                 <div class="data-card" data-id="${item.id}">
                     <div class="card-image">
-                        ${fotoUrl ? `<img src="${fotoUrl}" alt="${item.nama}" onerror="this.innerHTML='<i class=\'fas fa-image\'></i>'">` : '<i class="fas fa-image"></i>'}
+                        ${fotoUrl ? `<img src="${fotoUrl}" alt="${escapeHtml(item.nama)}" onerror="showImagePlaceholder(this)">` : '<i class="fas fa-image"></i>'}
                     </div>
                     <div class="card-body">
-                        <h3 class="card-title">${item.nama}</h3>
+                        <h3 class="card-title">${escapeHtml(item.nama)}</h3>
                         <div class="info-row">
                             <span class="info-label">Alamat:</span>
-                            <span class="info-value">${item.alamat}</span>
+                            <span class="info-value">${escapeHtml(item.alamat)}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">No. Meter:</span>
-                            <span class="info-value">${item.no_meter}</span>
+                            <span class="info-value">${escapeHtml(item.no_meter)}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Daya:</span>
-                            <span class="info-value">${item.daya_listrik || '-'} VA</span>
+                            <span class="info-value">${escapeHtml(item.daya_listrik || '-')} VA</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">No. HP:</span>
-                            <span class="info-value">${item.no_hp || '-'}</span>
+                            <span class="info-value">${escapeHtml(item.no_hp || '-')}</span>
                         </div>
                     </div>
                     <div class="card-footer">
@@ -75,6 +75,36 @@ document.addEventListener('DOMContentLoaded', () => {
             lastUpdateEl.textContent = lastDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
         }
     }
+
+    function getPhotoUrl(fotoPath) {
+        if (!fotoPath || fotoPath.startsWith('/data/') || fotoPath.startsWith('file:')) {
+            return null;
+        }
+
+        if (fotoPath.startsWith('http://') || fotoPath.startsWith('https://')) {
+            return fotoPath;
+        }
+
+        if (fotoPath.startsWith('/storage/')) {
+            return fotoPath;
+        }
+
+        return `/storage/${fotoPath.replace(/^\/+/, '')}`;
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;',
+        }[char]));
+    }
+
+    window.showImagePlaceholder = (image) => {
+        image.parentElement.innerHTML = '<i class="fas fa-image"></i>';
+    };
 
     // Search Logic
     searchInput.addEventListener('input', (e) => {

@@ -38,14 +38,16 @@ class PelangganController extends Controller
         $no_meter = $request->no_meter ?? $request->id_pelanggan ?? '';
         $daya_listrik = $request->daya_listrik ?? $request->daya;
 
+        $fotoPath = $this->normalizeFotoPath($request->foto_path);
+
         // 2. Simpan ke database SQLite Laptop
-        DB::table('pelanggans')->insert([
+        $id = DB::table('pelanggans')->insertGetId([
             'nama' => $request->nama,
             'alamat' => $request->alamat,
             'no_meter' => $no_meter,
             'daya_listrik' => $daya_listrik,
             'no_hp' => $request->no_hp,
-            'foto_path' => $request->foto_path,
+            'foto_path' => $fotoPath,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'waktu_kunjungan' => $request->waktu_kunjungan ? \Carbon\Carbon::parse($request->waktu_kunjungan) : null,
@@ -56,6 +58,7 @@ class PelangganController extends Controller
         // 3. Beri respon ke Flutter kalau berhasil
         return response()->json([
             'status' => 'success',
+            'id' => $id,
             'message' => 'Data pelanggan berhasil disinkronkan ke server!'
         ], 201);
     }
@@ -80,6 +83,7 @@ class PelangganController extends Controller
             return response()->json([
                 'status' => 'success',
                 'foto_path' => $path,
+                'foto_url' => asset('storage/' . $path),
                 'message' => 'Foto berhasil diupload!'
             ]);
         }
@@ -112,5 +116,18 @@ class PelangganController extends Controller
             'status' => 'success',
             'message' => 'Data berhasil dihapus'
         ]);
+    }
+
+    private function normalizeFotoPath(?string $fotoPath): ?string
+    {
+        if (!$fotoPath) {
+            return null;
+        }
+
+        if (str_starts_with($fotoPath, '/data/') || str_starts_with($fotoPath, 'file:')) {
+            return null;
+        }
+
+        return $fotoPath;
     }
 }
