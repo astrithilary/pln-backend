@@ -83,7 +83,7 @@ class PelangganController extends Controller
             return response()->json([
                 'status' => 'success',
                 'foto_path' => $path,
-                'foto_url' => asset('storage/' . $path),
+                'foto_url' => url('/api/foto/' . $path),
                 'message' => 'Foto berhasil diupload!'
             ]);
         }
@@ -92,6 +92,17 @@ class PelangganController extends Controller
             'status' => 'error',
             'message' => 'File foto tidak ditemukan'
         ], 400);
+    }
+
+    public function showFoto(string $path)
+    {
+        $path = ltrim($path, '/');
+
+        if (!\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            abort(404);
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->response($path);
     }
 
     public function destroy($id)

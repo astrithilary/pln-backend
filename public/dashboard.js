@@ -85,11 +85,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return fotoPath;
         }
 
-        if (fotoPath.startsWith('/storage/')) {
-            return fotoPath;
-        }
+        const cleanPath = fotoPath.replace(/^\/+/, '').replace(/^storage\//, '');
+        const encodedPath = cleanPath.split('/').map(encodeURIComponent).join('/');
 
-        return `/storage/${fotoPath.replace(/^\/+/, '')}`;
+        return `/api/foto/${encodedPath}`;
     }
 
     function escapeHtml(value) {

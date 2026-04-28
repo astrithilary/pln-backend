@@ -17,6 +17,7 @@ Route::get('/user', function (Request $request) {
 // Endpoint Sinkronisasi untuk Flutter
 Route::post('/sync-pelanggan', [PelangganController::class, 'store']);
 Route::post('/upload-foto/{id}', [PelangganController::class, 'uploadFoto']);
+Route::get('/foto/{path}', [PelangganController::class, 'showFoto'])->where('path', '.*');
 
 // Endpoint untuk Dashboard Website
 Route::get('/pelanggans', [PelangganController::class, 'index']);
