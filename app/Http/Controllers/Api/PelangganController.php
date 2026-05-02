@@ -8,6 +8,15 @@ use Illuminate\Support\Facades\DB;
 
 class PelangganController extends Controller
 {
+    public function index()
+    {
+        $pelanggans = DB::table('pelanggans')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($pelanggans);
+    }
+
     public function store(Request $request)
     {
         // 1. Validasi data yang masuk dari Flutter
@@ -29,14 +38,16 @@ class PelangganController extends Controller
         $no_meter = $request->no_meter ?? $request->id_pelanggan ?? '';
         $daya_listrik = $request->daya_listrik ?? $request->daya;
 
+        $fotoPath = $this->normalizeFotoPath($request->foto_path);
+
         // 2. Simpan ke database SQLite Laptop
-        DB::table('pelanggans')->insert([
+        $id = DB::table('pelanggans')->insertGetId([
             'nama' => $request->nama,
             'alamat' => $request->alamat,
             'no_meter' => $no_meter,
             'daya_listrik' => $daya_listrik,
             'no_hp' => $request->no_hp,
-            'foto_path' => $request->foto_path,
+            'foto_path' => $fotoPath,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'waktu_kunjungan' => $request->waktu_kunjungan ? \Carbon\Carbon::parse($request->waktu_kunjungan) : null,
@@ -47,6 +58,7 @@ class PelangganController extends Controller
         // 3. Beri respon ke Flutter kalau berhasil
         return response()->json([
             'status' => 'success',
+            'id' => $id,
             'message' => 'Data pelanggan berhasil disinkronkan ke server!'
         ], 201);
     }
@@ -71,6 +83,7 @@ class PelangganController extends Controller
             return response()->json([
                 'status' => 'success',
                 'foto_path' => $path,
+                'foto_url' => url('/api/foto/' . $path),
                 'message' => 'Foto berhasil diupload!'
             ]);
         }
@@ -79,5 +92,53 @@ class PelangganController extends Controller
             'status' => 'error',
             'message' => 'File foto tidak ditemukan'
         ], 400);
+    }
+
+    public function showFoto(string $path)
+    {
+        $path = ltrim($path, '/');
+
+        if (!\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            abort(404);
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->response($path);
+    }
+
+    public function destroy($id)
+    {
+        $pelanggan = DB::table('pelanggans')->where('id', $id)->first();
+
+        if (!$pelanggan) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data tidak ditemukan'
+            ], 404);
+        }
+
+        // Hapus foto if exists
+        if ($pelanggan->foto_path) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($pelanggan->foto_path);
+        }
+
+        DB::table('pelanggans')->where('id', $id)->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data berhasil dihapus'
+        ]);
+    }
+
+    private function normalizeFotoPath(?string $fotoPath): ?string
+    {
+        if (!$fotoPath) {
+            return null;
+        }
+
+        if (str_starts_with($fotoPath, '/data/') || str_starts_with($fotoPath, 'file:')) {
+            return null;
+        }
+
+        return $fotoPath;
     }
 }

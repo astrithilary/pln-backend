@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLN Sync Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="dashboard.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo">
+                <i class="fas fa-bolt"></i>
+                <span>PLN Sync <strong>Dashboard</strong></span>
+            </div>
+            <div class="header-actions">
+                <button id="exportBtn" class="btn btn-outline">
+                    <i class="fas fa-file-export"></i> Export CSV
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="content">
+        <section class="hero">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-label">Total Data</span>
+                    <span id="totalCount" class="stat-value">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Terakhir Sinkron</span>
+                    <span id="lastUpdate" class="stat-value">-</span>
+                </div>
+            </div>
+            
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Cari nama, alamat, atau no meter...">
+            </div>
+        </section>
+
+        <section class="data-section">
+            <div id="dataGrid" class="data-grid">
+                <!-- Data cards will be injected here -->
+                <div class="loader-container">
+                    <div class="loader"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
