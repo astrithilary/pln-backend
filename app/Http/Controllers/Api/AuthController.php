@@ -10,9 +10,6 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    /**
-     * Login endpoint untuk admin
-     */
     public function login(Request $request)
     {
         $request->validate([
@@ -37,9 +34,6 @@ class AuthController extends Controller
         ], 200);
     }
 
-    /**
-     * Get current authenticated user
-     */
     public function getUser(Request $request)
     {
         return response()->json([
@@ -47,12 +41,9 @@ class AuthController extends Controller
         ], 200);
     }
 
-    /**
-     * Logout endpoint
-     */
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $request->user()?->currentAccessToken()?->delete();
 
         return response()->json([
             'message' => 'Logout berhasil',
