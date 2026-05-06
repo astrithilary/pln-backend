@@ -13,40 +13,23 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'username' => 'required|string',
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->username)
+            ->orWhere('name', $request->username)
+            ->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['Email atau password salah.'],
+                'username' => ['Username atau password salah.'],
             ]);
         }
-
-        $token = $user->createToken('admin-token')->plainTextToken;
 
         return response()->json([
             'message' => 'Login berhasil',
             'user' => $user,
-            'token' => $token,
-        ], 200);
-    }
-
-    public function getUser(Request $request)
-    {
-        return response()->json([
-            'user' => $request->user(),
-        ], 200);
-    }
-
-    public function logout(Request $request)
-    {
-        $request->user()?->currentAccessToken()?->delete();
-
-        return response()->json([
-            'message' => 'Logout berhasil',
         ], 200);
     }
 }
